@@ -1,0 +1,54 @@
+# SMS Gateway Private Server - Docker Compose
+# Run: docker compose up -d
+# Logs: docker compose logs -f sms-gateway
+# Stop: docker compose down
+
+services:
+  # MySQL Database
+  mysql:
+    image: mariadb:10.11
+    container_name: sms-gateway-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword123}
+      MYSQL_DATABASE: sms_gateway_db
+      MYSQL_USER: sms_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme123}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # SMS Gateway Server
+  sms-gateway:
+    image: ghcr.io/android-sms-gateway/server:latest
+    container_name: sms-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config.yml:/app/config.yml:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Background Worker (handles cleanup tasks)
+  sms-gateway-worker:
+    image: ghcr.io/android-sms-gateway/server:latest
+    container_name: sms-gateway-worker
+    restart: unless-stopped
+    volumes:
+      - ./config.yml:/app/config.yml:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: ["/app/app", "worker"]
+
+volumes:
+  mysql_data:
+    driver: local

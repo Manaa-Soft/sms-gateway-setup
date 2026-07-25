@@ -1,0 +1,91 @@
+# =============================================================
+# SMS Gateway Private Server - Configuration
+# =============================================================
+# 
+# IMPORTANT: Change the following before deploying:
+#   1. gateway.private_token  (line below)
+#   2. database.password      (line below)
+#
+# Generate a strong token:
+#   openssl rand -base64 32
+# =============================================================
+
+# --- Database Configuration ---
+database:
+  host: mysql                    # Docker service name (or "localhost" for bare metal)
+  port: 3306                    # Default MySQL port
+  user: sms_user                # Database username
+  password: changeme123         # CHANGE THIS! Database password
+  database: sms_gateway_db      # Database name
+  timezone: UTC                 # Important for message TTL calculation
+  debug: false                  # Set to true for troubleshooting SQL queries
+  max_open_conns: 4             # Max open database connections
+  max_idle_conns: 2             # Max idle database connections
+
+# --- Gateway Configuration ---
+gateway:
+  mode: private                 # "private" = requires token for device registration
+  private_token: CHANGE_ME      # CHANGE THIS! Generate: openssl rand -base64 32
+  upstream_url: https://api.sms-gate.app/upstream/v1
+                                # Public server for push notifications (FCM)
+                                # Used to wake up the phone when a message is queued
+
+# --- HTTP Server Configuration ---
+http:
+  listen: 0.0.0.0:3000          # Listen on all interfaces, port 3000
+  proxies:
+    - "127.0.0.1"               # Trusted proxy IPs
+  api:
+    host:                       # Public host (leave empty for internal use)
+    path: /api                  # URL path prefix for API
+  openapi:
+    enabled: false              # Enable API docs at /api/docs
+
+# --- Firebase Cloud Messaging ---
+fcm:
+  credentials_json: "{}"        # Firebase credentials (public mode only)
+  timeout_seconds: 1
+  debounce_seconds: 5
+
+# --- SSE ---
+sse:
+  keep_alive_period_seconds: 15
+
+# --- Messages ---
+messages:
+  cache_ttl_seconds: 300
+  hashing_interval_seconds: 60
+
+# --- Cache ---
+cache:
+  url: memory://
+
+# --- PubSub ---
+pubsub:
+  url: memory://
+
+# --- JWT ---
+jwt:
+  secret:                       # Leave empty to disable JWT
+  access_ttl: 15m
+  refresh_ttl: 720h
+  issuer:
+
+# --- OTP ---
+otp:
+  ttl: 300
+  retries: 3
+
+# --- Background Worker Tasks ---
+tasks:
+  messages_hashing:
+    interval: 168h
+  messages_cleanup:
+    interval: 24h
+    max_age: 720h
+  devices_cleanup:
+    interval: 24h
+    max_age: 8760h
+  tokens_cleanup:
+    interval: 24h
+    max_age: 1h

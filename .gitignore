@@ -1,0 +1,19 @@
+# Config files with secrets (users should customize their own)
+# config.yml is tracked as an example, but in production use .env
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
