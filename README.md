@@ -283,9 +283,7 @@ docker compose logs -f sms-gateway
 
 ## ERPNext / Frappe Integration
 
-See [ERPNEXT-WEBHOOK-SETUP.md](ERPNEXT-WEBHOOK-SETUP.md) for the complete step-by-step guide.
-
-### Quick Summary
+### Quick Start (Webhook)
 
 1. In ERPNext, go to **Setup > Webhook**
 2. Create a new webhook:
@@ -312,6 +310,38 @@ See [ERPNEXT-WEBHOOK-SETUP.md](ERPNEXT-WEBHOOK-SETUP.md) for the complete step-b
 ```bash
 echo -n "USERNAME:PASSWORD" | base64
 ```
+
+See [ERPNEXT-WEBHOOK-SETUP.md](ERPNEXT-WEBHOOK-SETUP.md) for the complete webhook guide.
+
+---
+
+## Enterprise Integration (Recommended for Production)
+
+For a full enterprise solution with **automated balance reminders, payment confirmations,
+overdue alerts, and scheduled SMS**, see:
+
+### [ERPNEXT-ENTERPRISE-SMS.md](ERPNEXT-ENTERPRISE-SMS.md)
+
+This includes:
+
+| Feature | Description |
+|---------|-------------|
+| **Daily Balance Reminders** | Automatic SMS to customers with overdue invoices |
+| **Payment Confirmations** | Instant SMS when payment is received |
+| **Invoice Notifications** | SMS when invoice is created or submitted |
+| **Overdue Alerts** | Escalating reminders at 7/14/30/60/90 days |
+| **Payment Request Links** | SMS with payment instructions |
+
+### Quick Setup
+
+1. **Create the SMS Gateway Server Script** in ERPNext (see Enterprise guide Step 2)
+2. **Create Webhooks** for Invoice and Payment events (see Enterprise guide Step 3)
+3. **Set up Scheduled Job** for daily balance reminders (see Enterprise guide Step 4)
+4. **Test** from ERPNext Python Console:
+   ```python
+   frappe.get_attr("sms_gateway.send_sms")("+967777715787", "Test!")
+   frappe.get_attr("sms_gateway.send_balance_reminder")()
+   ```
 
 ---
 
@@ -401,12 +431,15 @@ sudo certbot --nginx -d your-domain.com
 
 ```
 sms-gateway-setup/
-├── README.md                    # This file
-├── config.yml                   # Server configuration (edit this!)
-├── docker-compose.yml           # Docker deployment
-├── nginx.conf                   # Optional reverse proxy
-├── ERPNEXT-WEBHOOK-SETUP.md    # ERPNext integration guide
-└── test-sms.sh                  # Quick test script
+├── README.md                        # This file
+├── config.yml                       # Server configuration (edit this!)
+├── docker-compose.yml               # Docker deployment
+├── nginx.conf                       # Optional reverse proxy
+├── ERPNEXT-WEBHOOK-SETUP.md        # Basic webhook integration guide
+├── ERPNEXT-ENTERPRISE-SMS.md       # Enterprise solution (balances, reminders, payments)
+├── test-sms.sh                      # Quick test script
+├── .env.example                     # Docker environment template
+└── .gitignore
 ```
 
 ---
