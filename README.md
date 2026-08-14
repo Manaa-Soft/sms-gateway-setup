@@ -1,7 +1,12 @@
 # SMS Gateway Private Server - Setup Guide
 
-Self-hosted SMS Gateway with **no domain, no SSL certificate, no HTTPS required**.
+Self-hosted SMS Gateway with **no domain and no public SSL certificate**.
 Connect your Android phone as an SMS gateway and integrate with ERPNext/Frappe.
+
+> **Note:** sending SMS works over plain HTTP, but webhook **delivery to Frappe**
+> (delivery receipts / inbound SMS) still needs an `https://` webhook URL — the
+> gateway server hard-rejects `http://` URLs. See
+> [Incoming SMS / Webhooks](#incoming-sms--webhooks-https-requirement) below.
 
 ## Table of Contents
 
@@ -11,6 +16,7 @@ Connect your Android phone as an SMS gateway and integrate with ERPNext/Frappe.
 - [Option B: Bare Metal Setup](#option-b-bare-metal-setup)
 - [Configure the Android App](#configure-the-android-app)
 - [Test the SMS Gateway](#test-the-sms-gateway)
+- [Incoming SMS / Webhooks (HTTPS requirement)](#incoming-sms--webhooks-https-requirement)
 - [ERPNext / Frappe Integration](#erpnext--frappe-integration)
 - [Troubleshooting](#troubleshooting)
 - [Security Notes](#security-notes)
@@ -278,6 +284,39 @@ docker compose logs -f sms-gateway
 # Bare metal
 # Logs are printed to stdout
 ```
+
+---
+
+## Incoming SMS / Webhooks (HTTPS requirement)
+
+Webhook URLs **must start with `https://`** — the gateway server rejects anything
+else with `400 Bad Request: url must start with https://`. There is **no
+`allow_http` config option** (unknown YAML keys are silently ignored).
+
+This still works fully offline on a private LAN: the phone reports events to the
+server over HTTP (it never touches the webhook URL), and only the server POSTs
+to your `https://` webhook URL. To make the server trust a private certificate:
+
+1. Create a self-signed CA + server cert (SAN = your LAN IP).
+2. Put an nginx `listen 443 ssl` → `proxy_pass http://127.0.0.1:80` (Frappe)
+   block in front of your site.
+3. Tell the gateway container to trust the CA by adding to **both** the
+   `sms-gateway` and `sms-gateway-worker` services in `docker-compose.yml`:
+
+   ```yaml
+   environment:
+     - SSL_CERT_FILE=/app/sms-ca.crt
+   volumes:
+     - /etc/nginx/ssl/sms-ca.crt:/app/sms-ca.crt:ro
+   ```
+
+   Then `docker compose up -d`.
+
+4. Point SMS Relay at `https://192.168.1.15/api/method/sms_relay.api.webhook_receiver.incoming_webhook`
+   (SMS Device → **Webhook Callback URL** or SMS Gateway Settings → **Webhook URL**)
+   and re-run **Check Device**.
+
+Full recipe: https://github.com/Manaa-Soft/sms_relay/wiki/Webhook-Delivery
 
 ---
 
