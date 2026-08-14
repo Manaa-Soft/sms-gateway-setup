@@ -158,7 +158,7 @@ def send_sms(number, message):
     """
     Send a single SMS.
     Usage from client script or bench console:
-        frappe.get_attr("sms_gateway.send_sms")("+967777715787", "Hello!")
+        frappe.get_attr("sms_gateway.send_sms")("+1234567890", "Hello!")
     """
     if not number or not message:
         return {"success": False, "error": "Phone number and message are required"}
@@ -705,7 +705,7 @@ Go to: **Setup > Developer > Python Console**
 
 ```python
 # Test 1: Simple SMS
-frappe.get_attr("sms_gateway.send_sms")("+967777715787", "Test from ERPNext!")
+frappe.get_attr("sms_gateway.send_sms")("+1234567890", "Test from ERPNext!")
 
 # Test 2: Invoice notification
 frappe.get_attr("sms_gateway.send_invoice_notification")("ACC-SINV-2026-00198", "created")

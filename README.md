@@ -378,7 +378,7 @@ This includes:
 3. **Set up Scheduled Job** for daily balance reminders (see Enterprise guide Step 4)
 4. **Test** from ERPNext Python Console:
    ```python
-   frappe.get_attr("sms_gateway.send_sms")("+967777715787", "Test!")
+   frappe.get_attr("sms_gateway.send_sms")("+1234567890", "Test!")
    frappe.get_attr("sms_gateway.send_balance_reminder")()
    ```
 

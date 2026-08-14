@@ -5,7 +5,7 @@
 # Usage: ./test-sms.sh SERVER_IP USERNAME PASSWORD PHONE_NUMBER
 #
 # Example:
-#   ./test-sms.sh 192.168.1.15 G9G_SA swlnlea5h-bho2 +967777715787
+#   ./test-sms.sh 192.168.1.15 G9G_SA swlnlea5h-bho2 +1234567890
 # =============================================================
 
 # --- Configuration ---
@@ -32,7 +32,7 @@ if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
     echo -e "${RED}Usage:${NC} ./test-sms.sh <SERVER_IP> <USERNAME> <PASSWORD> <PHONE_NUMBER>"
     echo ""
     echo "Example:"
-    echo "  ./test-sms.sh 192.168.1.15 G9G_SA swlnlea5h-bho2 +967777715787"
+    echo "  ./test-sms.sh 192.168.1.15 G9G_SA swlnlea5h-bho2 +1234567890"
     exit 1
 fi
 
