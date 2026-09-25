@@ -293,28 +293,26 @@ Webhook URLs **must start with `https://`** — the gateway server rejects anyth
 else with `400 Bad Request: url must start with https://`. There is **no
 `allow_http` config option** (unknown YAML keys are silently ignored).
 
-This still works fully offline on a private LAN: the phone reports events to the
-server over HTTP (it never touches the webhook URL), and only the server POSTs
-to your `https://` webhook URL. To make the server trust a private certificate:
+Note who delivers the webhook: the **Android app POSTs it itself** to the
+registered URL (it fetches its webhook list from the server; the server does not
+relay). So the **phone** must be able to reach that URL and trust its
+certificate. No internet connection is required — everything can stay on the LAN.
+
+To make a private-LAN https URL work:
 
 1. Create a self-signed CA + server cert (SAN = your LAN IP).
 2. Put an nginx `listen 443 ssl` → `proxy_pass http://127.0.0.1:80` (Frappe)
    block in front of your site.
-3. Tell the gateway container to trust the CA by adding to **both** the
-   `sms-gateway` and `sms-gateway-worker` services in `docker-compose.yml`:
-
-   ```yaml
-   environment:
-     - SSL_CERT_FILE=/app/sms-ca.crt
-   volumes:
-     - /etc/nginx/ssl/sms-ca.crt:/app/sms-ca.crt:ro
-   ```
-
-   Then `docker compose up -d`.
-
-4. Point SMS Relay at `https://192.168.1.15/api/method/sms_relay.api.webhook_receiver.incoming_webhook`
+3. Install the CA on the **phone** as a user CA certificate (Settings → Security
+   → Install a certificate → CA certificate). Both the release and the insecure
+   app builds trust user-installed CAs, so no app rebuild is needed.
+4. Point SMS Relay at
+   `https://192.168.1.15/api/method/sms_relay.api.webhook_receiver.incoming_webhook`
    (SMS Device → **Webhook Callback URL** or SMS Gateway Settings → **Webhook URL**)
    and re-run **Check Device**.
+5. On the phone, toggle the Cloud Server connection so the app fetches the new
+   webhook list — it otherwise refreshes every 24 hours (or on an FCM push,
+   which needs internet).
 
 Full recipe: https://github.com/Manaa-Soft/sms_relay/wiki/Webhook-Delivery
 
